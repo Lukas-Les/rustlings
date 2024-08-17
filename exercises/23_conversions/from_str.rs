@@ -5,6 +5,7 @@
 // more about it in the documentation:
 // https://doc.rust-lang.org/std/str/trait.FromStr.html
 
+use std::io::Split;
 use std::num::ParseIntError;
 use std::str::FromStr;
 
@@ -41,7 +42,22 @@ enum ParsePersonError {
 impl FromStr for Person {
     type Err = ParsePersonError;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {}
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut split = s.split(",");
+        let (Some(name), Some(age), None) = (split.next(), split.next(), split.next()) else {
+            return Err(ParsePersonError::BadLen);
+        };
+        if name.is_empty() {
+            return Err(ParsePersonError::NoName);
+        };
+        let parsed_age = age.parse::<u8>().map_err(ParsePersonError::ParseInt)?;
+        Ok(
+            Person {
+                name: name.into(),
+                age: parsed_age,
+            }
+        )
+    }
 }
 
 fn main() {
